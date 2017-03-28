@@ -1,4 +1,8 @@
-ADAPTAR LOS DATOS A LOS DOCUMENTOS QUE INSERTAMOS EN MONGODB
+ADAPTAR LOS DATOS A LOS DOCUMENTOS QUE INSERTAMOS EN MONGODB. 
+ARRANCAR docker-compose up
+COMPATIBILIDAD elasticsearch y spring-data-elasticsearch 
+   -> https://github.com/spring-projects/spring-data-elasticsearch/wiki/Spring-Data-Elasticsearch---Spring-Boot---version-matrix
+   -> Spring 1.4.X -> Elasticsearch (2.0.0 <= z < 5.0.0**)
 
 #CREAR INDICE
 curl -XPUT http://localhost:9200/indexproduct
