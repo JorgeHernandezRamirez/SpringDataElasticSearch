@@ -1,0 +1,31 @@
+group 'com.jorgehernandezramirez.spring.springboot.springdata'
+version '1.0-SNAPSHOT'
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:1.5.2.RELEASE")
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'idea'
+apply plugin: 'org.springframework.boot'
+apply plugin: 'maven'
+
+sourceCompatibility = 1.8
+
+springBoot {
+    mainClass = "com.jorgehernandezramirez.spring.springboot.https.Application"
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testCompile("org.springframework.boot:spring-boot-starter-test")
+    testCompile("org.springframework.boot:spring-boot-starter-data-elasticsearch")
+}

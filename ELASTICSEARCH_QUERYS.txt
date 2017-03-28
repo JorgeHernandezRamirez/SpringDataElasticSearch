@@ -1,0 +1,25 @@
+ADAPTAR LOS DATOS A LOS DOCUMENTOS QUE INSERTAMOS EN MONGODB
+
+#CREAR INDICE
+curl -XPUT http://localhost:9200/indexproduct
+
+#BORRAR INDICE
+curl -XREMOVE http://localhost:9200/indexproduct
+
+#BUSCAR INDICE
+curl -XGET http://localhost:9200/indexproduct/_search?pretty=true
+
+-------------------------------------------------------------------------
+
+curl -XPUT http://localhost:9200/indexproduct/product/1?pretty -H 'Content-Type: application/json' -d"{\"userId\":\"031ab5b5-492a-4ee9-a676-9031e0280f42\",\"bankId\":\"0073\",\"userBankId\":\"78521999E\",\"product\":\"ACCOUNT\",\"number\":200}"
+curl -XPUT http://localhost:9200/indexproduct/product/2?pretty -H 'Content-Type: application/json' -d"{\"userId\":\"031ab5b5-492a-4ee9-a676-9031e0280f42\",\"bankId\":\"0073\",\"userBankId\":\"78521999E\",\"product\":\"CREDITCARD\",\"number\":10}"
+curl -XPUT http://localhost:9200/indexproduct/product/3?pretty -H 'Content-Type: application/json' -d"{\"userId\":\"031ab5b5-492a-4ee9-a676-9031e0280f43\",\"bankId\":\"0073\",\"userBankId\":\"78521998K\",\"product\":\"ACCOUNT\",\"number\":100}"
+curl -XPUT http://localhost:9200/indexproduct/product/4?pretty -H 'Content-Type: application/json' -d"{\"userId\":\"031ab5b5-492a-4ee9-a676-9031e0280f42\",\"bankId\":\"0073\",\"userBankId\":\"78521999E\",\"product\":\"CREDITCARD\",\"number\":5}"
+
+#FIND BY PRODUCT
+curl -XGET http://localhost:9200/indexproduct/product/_search?pretty -H 'Content-Type: application/json' -d"{\"query\" : {  \"match\" : { \"product\" : \"ACCOUNT\" }}}"
+curl -XGET http://localhost:9200/indexproduct/_search?pretty -H 'Content-Type: application/json' -d"{\"query\" : {  \"match\" : { \"product\" : \"ACCOUNT\" }}}"
+curl -XGET http://localhost:9200/indexproduct/_search?pretty -H 'Content-Type: application/json' -d"{\"from\":0,\"query\":{\"match_all\":{}}}"
+
+#GROUP BY
+curl -XGET http://localhost:9200/indexproduct/_search?pretty -H 'Content-Type: application/json' -d"{\"size\":0,\"aggs\":{\"group_by_product\":{\"terms\":{\"field\":\"product\"},\"aggs\":{\"average_number\":{\"avg\":{\"field\":\"number\"}},\"sum_number\":{\"sum\":{\"field\":\"number\"}}}}}}"
