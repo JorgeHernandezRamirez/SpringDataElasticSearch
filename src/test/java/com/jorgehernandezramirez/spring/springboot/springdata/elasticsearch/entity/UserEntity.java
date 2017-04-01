@@ -2,6 +2,10 @@ package com.jorgehernandezramirez.spring.springboot.springdata.elasticsearch.ent
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.Document;
+import org.springframework.data.elasticsearch.annotations.Field;
+import org.springframework.data.elasticsearch.annotations.FieldType;
+
+import java.util.List;
 
 @Document(indexName = "myindex", type = "user")
 public class UserEntity {
@@ -9,21 +13,31 @@ public class UserEntity {
     @Id
     private String id;
 
-    private String userId;
+    private String name;
 
-    private String bankId;
+    private String gender;
 
-    private Integer numberproducts;
+    private String surname;
+
+    private Integer money;
+
+    private List<String> roles;
+
+    @Field(type = FieldType.Nested)
+    private List<TeamEntity> teams;
 
     public UserEntity(){
         //Para Spring Data
     }
 
-    public UserEntity(String id, String userId, String bankId, Integer numberproducts) {
+    public UserEntity(String id, String name, String gender, String surname, Integer money, List<String> roles, List<TeamEntity> teams) {
         this.id = id;
-        this.userId = userId;
-        this.bankId = bankId;
-        this.numberproducts = numberproducts;
+        this.name = name;
+        this.gender = gender;
+        this.surname = surname;
+        this.money = money;
+        this.roles = roles;
+        this.teams = teams;
     }
 
     public String getId() {
@@ -34,37 +48,64 @@ public class UserEntity {
         this.id = id;
     }
 
-    public String getUserId() {
-        return userId;
+    public String getName() {
+        return name;
     }
 
-    public void setUserId(String userId) {
-        this.userId = userId;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public String getBankId() {
-        return bankId;
+    public String getGender() {
+        return gender;
     }
 
-    public void setBankId(String bankId) {
-        this.bankId = bankId;
+    public void setGender(String gender) {
+        this.gender = gender;
     }
 
-    public Integer getNumberproducts() {
-        return numberproducts;
+    public String getSurname() {
+        return surname;
     }
 
-    public void setNumberproducts(Integer numberproducts) {
-        this.numberproducts = numberproducts;
+    public void setSurname(String surname) {
+        this.surname = surname;
+    }
+
+    public Integer getMoney() {
+        return money;
+    }
+
+    public void setMoney(Integer money) {
+        this.money = money;
+    }
+
+    public List<String> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(List<String> roles) {
+        this.roles = roles;
+    }
+
+    public List<TeamEntity> getTeams() {
+        return teams;
+    }
+
+    public void setTeams(List<TeamEntity> teams) {
+        this.teams = teams;
     }
 
     @Override
     public String toString() {
         return "UserEntity{" +
                 "id='" + id + '\'' +
-                ", userId='" + userId + '\'' +
-                ", bankId='" + bankId + '\'' +
-                ", numberproducts=" + numberproducts +
+                ", name='" + name + '\'' +
+                ", gender='" + gender + '\'' +
+                ", surname='" + surname + '\'' +
+                ", money=" + money +
+                ", roles=" + roles +
+                ", teams=" + teams +
                 '}';
     }
 }

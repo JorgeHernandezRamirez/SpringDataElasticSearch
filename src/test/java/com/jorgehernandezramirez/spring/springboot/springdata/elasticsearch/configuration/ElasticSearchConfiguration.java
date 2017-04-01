@@ -24,8 +24,7 @@ public class ElasticSearchConfiguration {
                 .settings(esSettings)
                 .build()
                 .addTransportAddress(
-                        //new InetSocketTransportAddress(InetAddress.getByName("localhost"), 9300));
-                        new InetSocketTransportAddress(InetAddress.getByName("192.168.99.100"), 9300));
+                        new InetSocketTransportAddress(InetAddress.getByName("localhost"), 9300));
     }
 
     @Bean

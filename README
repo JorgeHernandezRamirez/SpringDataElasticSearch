@@ -1,0 +1,431 @@
+#Crear índice
+curl -X PUT http://localhost:9200/myindex
+
+#CREAR INDICE MAPPING
+curl -X PUT 'localhost:9200/myindex' -H 'Content-Type: application/json' -d'
+{
+  "mappings": {
+    "user": {
+      "properties": {
+        "money": {"type": "integer"},
+        "teams": {
+          "type": "nested", 
+          "properties": {
+            "name":    { "type": "string"  },
+            "sport": { "type": "string"  }
+          }
+        }
+      }
+    }
+  }
+}
+'
+
+#BORRAR INDICE
+curl -X DELETE http://localhost:9200/myindex
+
+#BUSCAR INDICE
+curl -X GET http://localhost:9200/myindex/_search?pretty=true
+
+#INSERTAR EN INDICE y TIPO
+
+curl -X PUT 'localhost:9200/myindex/user/1?pretty' -H 'Content-Type: application/json' -d'
+{
+  "name": "admin",
+  "surname": "admin",
+  "gender": "male",
+  "money": 0,
+  "roles": [
+    "ROLE_ADMIN"
+  ]
+}'
+
+curl -X PUT 'localhost:9200/myindex/user/2?pretty' -H 'Content-Type: application/json' -d'
+{
+  "name": "Jorge",
+  "surname": "Hernández Ramírez",
+  "gender": "male",
+  "money": 1000,
+  "roles": [
+    "ROLE_ADMIN"
+  ],
+  "teams": [
+    {
+      "name": "UD.Las Palmas",
+      "sport": "Football"
+    },
+    {
+      "name": "Real Madrid",
+      "sport": "Football"
+    },
+    {
+      "name": "McLaren",
+      "sport": "F1"
+    }
+  ]
+}'
+
+curl -X PUT 'localhost:9200/myindex/user/3?pretty' -H 'Content-Type: application/json' -d'
+{
+  "name": "Jose",
+  "gender": "male",
+  "surname": "Hernández Ramírez",
+  "money": 2000,
+  "roles": [
+    "ROLE_USER"
+  ],
+  "teams": [
+    {
+      "name": "UD. Las Palmas",
+      "sport": "Football"
+    },
+    {
+      "name": "Magnus Carlsen",
+      "sport": "Chess"
+    }
+  ]
+}'
+
+curl -X PUT 'localhost:9200/myindex/user/4?pretty' -H 'Content-Type: application/json' -d'
+{
+  "name": "Raul",
+  "surname": "González Blanco",
+  "gender": "male",
+  "money": 200000,
+  "roles": [
+    "ROLE_USER"
+  ],
+  "teams": [
+    {
+      "name": "Real Madrid",
+      "sport": "Football"
+    },
+    {
+      "name": "Real Madrid",
+      "sport": "Basketball"
+    }
+  ]
+}'
+
+curl -X PUT 'localhost:9200/myindex/user/5?pretty' -H 'Content-Type: application/json' -d'
+{
+  "name": "Constanza",
+  "surname": "Ramírez Rodríguez",
+  "gender": "female",
+  "money": 500,
+  "roles": [
+    "ROLE_USER"
+  ],
+  "teams": [
+    {
+      "name": "UD. Las Palmas",
+      "sport": "Football"
+    }
+  ]
+}'
+
+#QUERYS
+
+#Term -> Todo el resultado debe coincidir con sólamente una palabra. Si establecemos que queremos buscar por dos palabras el resultado no se va a encontrar
+
+#1. Buscar aquellos elementos que su apellido sea exactamente Hernández ramírez
+curl -XGET 'localhost:9200/myindex/_search?pretty' -H 'Content-Type: application/json' -d'
+{
+    "query": {
+        "term" : {
+            "gender" : "female"
+        }
+    }
+}
+'
+
+#Match -> #Podemos buscar por un campo (SOLAMANENTE UN CAMPO) donde aparezcan varias pablabras
+
+#1. Buscar todos aquellos que tengan como apellidos Ramírez
+curl -XGET 'localhost:9200/myindex/_search?pretty' -H 'Content-Type: application/json' -d'
+{
+    "query": {
+        "match" : {
+            "surname" : "Ramírez"
+        }
+    }
+}
+'
+
+#2. Buscar todos aquellos que tengan como apellidos Henrández o Ramírez
+curl -XGET 'localhost:9200/myindex/_search?pretty' -H 'Content-Type: application/json' -d'
+{
+    "query": {
+        "match" : {
+            "surname" : "Hernández Ramírez"
+        }
+    }
+}
+
+#3. Buscar todos aquellos que tengan como apellidos Henrández y Ramírez
+curl -XGET 'localhost:9200/myindex/_search?pretty' -H 'Content-Type: application/json' -d'
+{
+    "query": {
+        "match" : {
+            "surname" : {
+            	"query": "Hernández Ramírez",
+            	"operator" : "and"
+            }
+        }
+    }
+}
+'
+
+#QUERY_MATCH -> Podemos hacer búsquedas utilizando operadores y sobre diferentes campos
+
+#1. Buscar todos aquellos que tengan como apellidos Henrández o Ramírez. Indicar el campo por defecto. Esto quiere decir que 
+    si no se indica el campo en la query se busca por el
+curl -XGET 'localhost:9200/myindex/_search?pretty' -H 'Content-Type: application/json' -d'
+{
+    "query": {
+        "query_string" : {
+            "default_field" : "surname",
+            "query" : "Herández OR Ramírez"
+        }
+    }
+}
+'
+
+#1. Buscar todos aquellos que tengan como apellidos Henrández o Ramírez y que sean mujeres
+curl -XGET 'localhost:9200/myindex/_search?pretty' -H 'Content-Type: application/json' -d'
+{
+    "query": {
+        "query_string" : {
+            "default_field" : "surname",
+            "query" : "Herández OR Ramírez AND gender:female"
+        }
+    }
+}
+'
+
+curl -XGET 'localhost:9200/myindex/_search?pretty' -H 'Content-Type: application/json' -d'
+{
+    "query": {
+        "query_string" : {
+            "default_field" : "",
+            "query" : "surname:Herández OR surname:Ramírez AND gender:female"
+        }
+    }
+}
+'
+
+#BOOL -> Para poder ejecutar n veces un MATCH por ejemplo (MUST, SHOULD, NOT MUST, FILTER). 
+
+#1. Obtener lso documentos que tengan como apellido Ramírez y sean mujeres. Solo con el match no se puede hacer. Sí con el query
+curl -XGET 'localhost:9200/myindex/_search?pretty' -H 'Content-Type: application/json' -d'
+{
+  "query": {
+    "bool" : {
+      "must" : [
+      	{"term" : { "gender" : "female" }},
+      	{"match" : { "surname" : "Ramírez" }}
+      ]
+    }
+  }
+}
+'
+
+#2. Obtener los documentos que tengan como nombre a Jorge o a Jose. Utilizamos query_string para practicas
+curl -XGET 'localhost:9200/myindex/_search?pretty' -H 'Content-Type: application/json' -d'
+{
+  "query": {
+    "bool" : {
+      "should" : [
+      	{"query_string" : { "query" : "name:Jose" }},
+      	{"query_string" : { "query" : "name:Jorge" }}
+      ]
+    }
+  }
+}
+'
+
+#NESTED OBJECT -> para hacer búsquedas sobre elementos anidados o en arrays
+
+#1. Buscan aquellos usuarios que le gusten Magnus Carlsen
+curl -XGET 'localhost:9200/myindex/_search?pretty' -H 'Content-Type: application/json' -d'
+{
+  "query": {
+    "bool" : {
+      "must" : [
+      	{"match" : { "teams.name" : "Magnus Carlsen" }}
+      ]
+    }
+  }
+}
+'
+
+#2. Buscan aquellos jugadores que le gusten Magnus Carlsen y cuyo deporte sea Football. No debería encontrar ningún documento ya que Magnus Carlsen se dedica al Chess. Sin embargo se encuentra ya que no tenemos objetos anidados
+curl -XGET 'localhost:9200/myindex/_search?pretty' -H 'Content-Type: application/json' -d'
+{
+  "query": {
+    "bool" : {
+      "must" : [
+      	{"match" : { "teams.name" : "Magnus Carlsen" }},
+      	{"match" : { "teams.sport" : "Football" }}
+      ]
+    }
+  }
+}
+'
+
+Cuando insertamos a Jose
+
+{
+  "name": "Jose",
+  "gender": "male",
+  "surname": "Hernández Ramírez",
+  "roles": [
+    "ROLE_USER"
+  ],
+  "teams": [
+    {
+      "name": "UD. Las Palmas",
+      "sport": "Football"
+    },
+    {
+      "name": "Magnus Carlsen",
+      "sport": "Chess"
+    }
+  ]
+}'
+
+Esto se transforma en
+
+{
+  "name": ["Jose"],
+  "gender": ["male"],
+  "surname": ["Hernández", "Ramírez"],
+  "roles": ["ROLE_USER"],
+  "teams.name": ["UD. Las Palmas", "Magnus Carlen"],
+  "teams.sport": ["Football", "Chess"]
+}'
+
+Por eso lo encuentra
+
+#3. Haciendo querys con mapping
+
+Debemos borrar el índice y crearlo con mapping
+
+curl -X PUT 'localhost:9200/myindex' 'Content-Type: application/json' -d'
+{
+  "mappings": {
+    "user": {
+      "properties": {
+        "teams": {
+          "type": "nested", 
+          "properties": {
+            "name":    { "type": "string"  },
+            "sport": { "type": "string"  }
+          }
+        }
+      }
+    }
+  }
+}
+'
+
+Una vez creado nuestro mapping. Ya no nos sirve las querys de arriba. Tenemos que usan los nested para buscar información sobre los arrays
+
+curl -XGET 'localhost:9200/_search?pretty' -H 'Content-Type: application/json' -d'
+{
+    "query": {
+        "nested" : {
+            "path" : "teams",
+            "query" : {
+            	"match" : {"teams.name" : "Magnus Carlen"} 
+            }
+        }
+    }
+}
+'
+
+Utilizamos query -> bool -> must porque queremos buscar por dos campos con un AND
+curl -XGET 'localhost:9200/_search?pretty' -H 'Content-Type: application/json' -d'
+{
+    "query": {
+        "nested" : {
+            "path" : "teams",
+            "query" : {
+                "bool" : {
+                    "must" : [
+                    { "match" : {"teams.name" : "Magnus Carlen"} },
+                    { "match" : {"teams.sport" : "Chess"} }
+                    ]
+                }
+            }
+        }
+    }
+}
+'
+
+#AGGREGATIONS
+
+#1. Agregar por género. Con Size indicamos cuantos elementos nos traemos. Si lo no establecemos indicamos que nos traiga todos
+
+curl -XGET 'localhost:9200/_search?pretty' -H 'Content-Type: application/json' -d'
+{
+    "aggs" : {
+        "group_by_gender" : {
+            "terms" : { "field" : "gender" }
+        }
+    }
+}
+'
+
+curl -XGET 'localhost:9200/_search?pretty' -H 'Content-Type: application/json' -d'
+{
+    "size" : 0,
+    "aggs" : {
+        "group_by_gender" : {
+            "terms" : { "field" : "gender" }
+        }
+    }
+}
+'
+
+#2. Haciendo una búsqueda previa
+curl -XGET 'localhost:9200/_search?pretty' -H 'Content-Type: application/json' -d'
+{
+	"query": {
+		"match": {"surname": "Ramírez"}
+	},
+    "aggs" : {
+        "group_by_gender" : {
+            "terms" : { "field" : "gender" }
+        }
+    }
+}
+'
+
+#3. Haciendo una búsqueda previa
+
+curl -XGET 'localhost:9200/myindex/_search?pretty' -H 'Content-Type: application/json' -d'
+{
+  "size": 0,
+  "aggs": {
+    "group_by_product": {
+      "terms": {
+        "field": "gender"
+      },
+      "aggs": {
+        "average_number": {
+          "avg": {
+            "field": "money"
+          }
+        },
+        "sum_number": {
+          "sum": {
+            "field": "money"
+          }
+        }
+      }
+    }
+  }
+}
+'
+

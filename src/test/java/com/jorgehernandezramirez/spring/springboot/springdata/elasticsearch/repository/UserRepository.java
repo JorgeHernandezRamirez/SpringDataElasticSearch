@@ -10,12 +10,12 @@ import java.util.List;
 
 public interface UserRepository extends ElasticsearchRepository<UserEntity, String> {
 
-    Page<UserEntity> findByUserId(String userId, Pageable pageable);
+    List<UserEntity> findByRoles(String role);
 
-    List<UserEntity> findByBankId(String bankId);
+    List<UserEntity> findBySurname(String name);
 
-    List<UserEntity> findByUserIdAndBankId(String userId, String bankId);
+    List<UserEntity> findBySurnameAndGender(String surname, String gender);
 
-    @Query("{\"query\":{\"match\":{\"userId\":\"?0\"}}}")
-    List<UserEntity> findByUser(String userId);
+    @Query("{\"query\":{\"match\":{\"name\":\"?0\"}}}")
+    List<UserEntity> findByName(String name);
 }

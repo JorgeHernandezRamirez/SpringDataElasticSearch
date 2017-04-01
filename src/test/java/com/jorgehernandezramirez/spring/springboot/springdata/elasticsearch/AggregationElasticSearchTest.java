@@ -7,6 +7,7 @@ import com.jorgehernandezramirez.spring.springboot.springdata.elasticsearch.serv
 import org.elasticsearch.search.aggregations.AbstractAggregationBuilder;
 import org.elasticsearch.search.aggregations.Aggregations;
 import org.elasticsearch.search.aggregations.bucket.terms.StringTerms;
+import org.elasticsearch.search.aggregations.metrics.avg.InternalAvg;
 import org.elasticsearch.search.aggregations.metrics.sum.InternalSum;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -24,13 +25,14 @@ import org.springframework.test.context.support.AnnotationConfigContextLoader;
 
 import static org.elasticsearch.action.search.SearchType.COUNT;
 import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
+import static org.elasticsearch.search.aggregations.AggregationBuilders.avg;
 import static org.elasticsearch.search.aggregations.AggregationBuilders.sum;
 import static org.elasticsearch.search.aggregations.AggregationBuilders.terms;
 import static org.junit.Assert.assertNotNull;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = ElasticSearchConfiguration.class,loader=AnnotationConfigContextLoader.class)
-public class AggregationElasticSearchTest {
+public class AggregationElasticSearchTest extends AbstractElasticSearchTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AggregationElasticSearchTest.class);
 
@@ -38,39 +40,41 @@ public class AggregationElasticSearchTest {
     private ElasticsearchTemplate elasticsearchTemplate;
 
     @Test
-    public void debeObtenerTodosElNumeroDeVecesQueApareceCadaBanco(){
-        final SearchQuery searchQuery = buildSearchQuery(terms("counter_bankId").field("bankId"));
+    public void shouldPrintNumberOfDocumentsFromGender(){
+        final SearchQuery searchQuery = buildSearchQuery(terms("counter_gender").field("gender"));
         final Aggregations aggregations = elasticsearchTemplate.query(searchQuery, new AggregationsResultsExtractor());
-        final StringTerms topTags = (StringTerms)aggregations.getAsMap().get("counter_bankId");
+        final StringTerms topTags = (StringTerms)aggregations.getAsMap().get("counter_gender");
         topTags.getBuckets().forEach(bucket -> {
             LOGGER.info("{}, {}", bucket.getKeyAsString(), bucket.getDocCount());
         });
     }
 
     @Test
-    public void debeObtenerLaSumaDeTodosLosDocumentosDelCampoNumberproducts(){
-        final SearchQuery searchQuery = buildSearchQuery(sum("sum_numberproducts").field("numberproducts"));
+    public void shouldPrintMoneySumOfAllDocumentes(){
+        final SearchQuery searchQuery = buildSearchQuery(sum("sum_money").field("money"));
         final Aggregations aggregations = elasticsearchTemplate.query(searchQuery, new AggregationsResultsExtractor());
         assertNotNull(aggregations);
-        assertNotNull(aggregations.asMap().get("sum_numberproducts"));
-        final InternalSum internalSum = (InternalSum)aggregations.getAsMap().get("sum_numberproducts");
+        assertNotNull(aggregations.asMap().get("sum_money"));
+        final InternalSum internalSum = (InternalSum)aggregations.getAsMap().get("sum_money");
         LOGGER.info("{}", internalSum.getValue());
     }
 
     @Test
-    public void debeObtenerLaSumaDeTodosLosDocumentosDelCampoNumberproductsParaCadaBanco(){
-        final SearchQuery searchQuery = buildSearchQuery(terms("counter_bankId").field("bankId").subAggregation(sum("sum_numberproducts").field("numberproducts")));
+    public void shouldPrintNumberOfDocumentsFromGenderAndSumAndAvgMoneyOfEveryone(){
+        final SearchQuery searchQuery = buildSearchQuery(terms("counter_gender").field("gender")
+                .subAggregation(sum("sum_money").field("money"))
+                .subAggregation(avg("avg_money").field("money")));
         final Aggregations aggregations = elasticsearchTemplate.query(searchQuery, new AggregationsResultsExtractor());
-        final StringTerms counterBankIds = (StringTerms)aggregations.getAsMap().get("counter_bankId");
+        final StringTerms counterBankIds = (StringTerms)aggregations.getAsMap().get("counter_gender");
         counterBankIds.getBuckets().forEach(bucket -> {
-            LOGGER.info("{}, {}, {}", bucket.getKeyAsString(), bucket.getDocCount(), ((InternalSum)bucket.getAggregations().getAsMap().get("sum_numberproducts")).getValue());
+            LOGGER.info("{}, {}, {}, {}", bucket.getKeyAsString(), bucket.getDocCount(), ((InternalSum)bucket.getAggregations().getAsMap().get("sum_money")).getValue(),
+                    ((InternalAvg)bucket.getAggregations().getAsMap().get("avg_money")).getValue());
         });
     }
 
     private SearchQuery buildSearchQuery(AbstractAggregationBuilder abstractAggregationBuilder){
         return new NativeSearchQueryBuilder()
                 .withQuery(matchAllQuery())
-                .withSearchType(COUNT)
                 .withIndices("myindex").withTypes("user")
                 .addAggregation(abstractAggregationBuilder)
                 .build();
