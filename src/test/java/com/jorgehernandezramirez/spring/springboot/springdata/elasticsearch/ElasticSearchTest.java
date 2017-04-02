@@ -5,6 +5,7 @@ import com.jorgehernandezramirez.spring.springboot.springdata.elasticsearch.enti
 import com.jorgehernandezramirez.spring.springboot.springdata.elasticsearch.entity.UserEntity;
 import com.jorgehernandezramirez.spring.springboot.springdata.elasticsearch.repository.UserRepository;
 import com.jorgehernandezramirez.spring.springboot.springdata.elasticsearch.service.AggregationsResultsExtractor;
+import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.aggregations.Aggregations;
 import org.elasticsearch.search.aggregations.bucket.terms.StringTerms;
 import org.elasticsearch.search.aggregations.metrics.sum.InternalSum;
@@ -30,7 +31,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.elasticsearch.action.search.SearchType.COUNT;
-import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
+import static org.elasticsearch.index.query.QueryBuilders.*;
 import static org.elasticsearch.search.aggregations.AggregationBuilders.sum;
 import static org.elasticsearch.search.aggregations.AggregationBuilders.terms;
 import static org.junit.Assert.assertEquals;
@@ -70,6 +71,29 @@ public class ElasticSearchTest extends AbstractElasticSearchTest{
     public void shouldFindDocumentsByRoles(){
         final List<UserEntity> userEntities = userRepository.findByRoles("ROLE_ADMIN");
         assertEquals(2, userEntities.size());
+    }
+
+    @Test
+    public void shouldFindDocumentsUsingNestedQuery(){
+        final QueryBuilder queryBuilder = nestedQuery("teams",
+                boolQuery().must(matchQuery("teams.name","Magnus Carlen"))
+                           .must(matchQuery("teams.sport", "Chess")));
+        final List<UserEntity> persons = getUserListFromQueryBuilder(queryBuilder);
+        assertEquals(1, persons.size());
+    }
+
+    @Test
+    public void shouldNotFindDocumentsUsingNestedQuery(){
+        final QueryBuilder queryBuilder = nestedQuery("teams",
+                boolQuery().must(matchQuery("teams.name","Magnus Carlen"))
+                        .must(matchQuery("teams.sport", "Football")));
+        final List<UserEntity> persons = getUserListFromQueryBuilder(queryBuilder);
+        assertEquals(0, persons.size());
+    }
+
+    private List<UserEntity> getUserListFromQueryBuilder(final QueryBuilder queryBuilder){
+        final SearchQuery searchQuery = new NativeSearchQueryBuilder().withQuery(queryBuilder).build();
+        return elasticsearchTemplate.queryForList(searchQuery, UserEntity.class);
     }
 
     private List<UserEntity> getListUserEntity(final Iterable<UserEntity> userEntityIterable){
