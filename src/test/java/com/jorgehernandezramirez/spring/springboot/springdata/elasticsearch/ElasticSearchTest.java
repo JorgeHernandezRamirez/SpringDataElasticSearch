@@ -93,7 +93,7 @@ public class ElasticSearchTest extends AbstractElasticSearchTest{
 
     private List<UserEntity> getUserListFromQueryBuilder(final QueryBuilder queryBuilder){
         final SearchQuery searchQuery = new NativeSearchQueryBuilder().withQuery(queryBuilder).build();
-        return elasticsearchTemplate.queryForList(searchQuery, UserEntity.class);
+        return userRepository.search(searchQuery).getContent();
     }
 
     private List<UserEntity> getListUserEntity(final Iterable<UserEntity> userEntityIterable){
